@@ -1,0 +1,17 @@
+{
+    "name": "neuralpin/llamaguard",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Neuralpin\\Llamaguard\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Ulises Rendon",
+            "email": "ulises.rendon@outlook.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
