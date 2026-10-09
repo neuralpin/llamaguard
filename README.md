@@ -55,4 +55,4 @@ For production, configure the web server to send application routes to `public/i
 - `GET /api/tags` and `GET /api/ps` return only models allowed for the authenticated client.
 - `POST /api/show`, `/api/chat`, `/api/generate`, `/api/embed`, and `/api/embeddings` require an allowed `model` in the JSON body.
 
-Send `Authorization: Bearer <client-token>`. Ollama management operations such as pull, delete, and copy are intentionally unavailable. Generation requests have `num_predict` and `num_ctx` capped to the client's limits, and the gateway overrides `keep_alive`.
+Send `Authorization: Bearer <client-token>`. Ollama management operations such as pull, delete, and copy are intentionally unavailable. Generation requests have `num_predict` and `num_ctx` capped to the client's limits. Requests may set `keep_alive` to a duration string or integer, including negative durations such as `"-1h"`; `LLAMAGUARD_KEEP_ALIVE` is used when the request omits it.

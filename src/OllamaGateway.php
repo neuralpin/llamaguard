@@ -137,7 +137,13 @@ final class OllamaGateway
         $options['num_predict'] = min(max(1, $requestedPredict), $client['max_predict']);
         $options['num_ctx'] = min(max(1, $requestedContext), $client['max_context']);
         $payload['options'] = $options;
-        $payload['keep_alive'] = getenv('LLAMAGUARD_KEEP_ALIVE') ?: '5m';
+        $keepAlive = array_key_exists('keep_alive', $payload)
+            ? $payload['keep_alive']
+            : (getenv('LLAMAGUARD_KEEP_ALIVE') ?: '5m');
+        if (!is_string($keepAlive) && !is_int($keepAlive)) {
+            return false;
+        }
+        $payload['keep_alive'] = $keepAlive;
 
         return !isset($payload['stream']) || is_bool($payload['stream']);
     }
