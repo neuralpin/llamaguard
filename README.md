@@ -25,7 +25,7 @@ Environment settings include `SQLITE_PATH`, `REDIS_HOST`, `REDIS_PORT`, `REDIS_P
 
 ## Manage Clients
 
-Initialize the database, then add each client with only the models it needs. The add command generates and displays a unique bearer token once; deliver it to the client through a secure channel.
+Initialize the database, then add each client with only the models it needs. The add command generates and displays a bearer token for a new client; deliver it to the client through a secure channel. Run it again with the same client ID to add models while keeping the existing token and limits. Explicitly supplied limits update that client's limits.
 
 ```powershell
 Copy-Item .env.example .env
@@ -37,7 +37,7 @@ php bin/llamaguard.php client:list
 php bin/llamaguard.php client:remove reporting-app
 ```
 
-Available per-client limits are `--requests-per-minute`, `--max-concurrent`, `--max-predict`, `--max-context`, and `--max-request-bytes`. Defaults are 30 requests/minute, one concurrent request, 1,024 generated tokens, 8,192 context tokens, and 1 MiB request bodies. Values are capped by the gateway's hard limits. Re-adding an existing client ID rotates its token and replaces its settings.
+Available per-client limits are `--requests-per-minute`, `--max-concurrent`, `--max-predict`, `--max-context`, and `--max-request-bytes`. Defaults are 30 requests/minute, one concurrent request, 1,024 generated tokens, 8,192 context tokens, and 1 MiB request bodies. Values are capped by the gateway's hard limits. To grant multiple models, list them in one command or add them in successive commands using the same client ID; both use the same bearer token.
 
 ## Run
 

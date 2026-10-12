@@ -39,7 +39,7 @@ final class ClientRegistry
     }
 
     /** @param list<string> $models */
-    public function createClient(string $id, string $token, array $models, array $limits = []): void
+    public function createClient(string $id, string $token, array $models, array $limits = []): bool
     {
         if (!preg_match('/^[A-Za-z0-9._-]{1,64}$/', $id) || strlen($token) < 32 || $models === []) {
             throw new \InvalidArgumentException('Client ID, token, or model allowlist is invalid.');
@@ -54,9 +54,12 @@ final class ClientRegistry
             }
         }
 
-        $settings = ['models' => array_values(array_unique($models))];
+        $existing = $this->store->findClientById($id);
+        $settings = [
+            'models' => array_values(array_unique(array_merge($existing['models'] ?? [], $models))),
+        ];
         foreach (self::LIMITS as $name => [$default, $maximum]) {
-            $value = $limits[$name] ?? $default;
+            $value = $limits[$name] ?? $existing[$name] ?? $default;
             if (!is_int($value) || $value < 1) {
                 throw new \InvalidArgumentException("Client limit {$name} must be a positive integer.");
             }
@@ -64,6 +67,8 @@ final class ClientRegistry
         }
 
         $this->store->saveClient($id, $token, $settings);
+
+        return $existing === null;
     }
 
     public function removeClient(string $id): bool

@@ -39,8 +39,12 @@ try {
         }
 
         $token = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
-        $registry->createClient($id, $token, $models, $limits);
-        echo "Client created. Store this token securely; it will not be shown again:\n{$token}\n";
+        $created = $registry->createClient($id, $token, $models, $limits);
+        if ($created) {
+            echo "Client created. Store this token securely; it will not be shown again:\n{$token}\n";
+        } else {
+            echo "Client updated. Added models; the existing bearer token is unchanged.\n";
+        }
     } elseif ($command === 'client:remove' && isset($argv[2])) {
         echo $registry->removeClient($argv[2]) ? "Client removed.\n" : "Client not found.\n";
     } elseif ($command === 'client:list') {

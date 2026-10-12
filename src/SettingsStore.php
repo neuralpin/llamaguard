@@ -126,6 +126,26 @@ final class SettingsStore
         return ['id' => $clientId] + $settings;
     }
 
+    /** @return array<string, mixed>|null */
+    public function findClientById(string $clientId): ?array
+    {
+        $query = $this->database->prepare(
+            'SELECT encrypted_settings FROM clients WHERE client_id = :client_id'
+        );
+        $query->execute(['client_id' => $clientId]);
+        $encryptedSettings = $query->fetchColumn();
+        if (!is_string($encryptedSettings)) {
+            return null;
+        }
+
+        $settings = json_decode($this->decrypt($encryptedSettings), true, 512, JSON_THROW_ON_ERROR);
+        if (!is_array($settings)) {
+            throw new \RuntimeException('Stored client settings are invalid.');
+        }
+
+        return ['id' => $clientId] + $settings;
+    }
+
     public function saveClient(string $clientId, string $token, array $settings): void
     {
         $tokenHash = hash_hmac('sha256', $token, $this->key);
@@ -137,7 +157,7 @@ final class SettingsStore
         $upsert = $this->database->prepare(
             'INSERT INTO clients (client_id, token_hash, encrypted_settings, updated_at) '
             . 'VALUES (:client_id, :token_hash, :settings, CURRENT_TIMESTAMP) '
-            . 'ON CONFLICT(client_id) DO UPDATE SET token_hash = excluded.token_hash, '
+            . 'ON CONFLICT(client_id) DO UPDATE SET '
             . 'encrypted_settings = excluded.encrypted_settings, updated_at = CURRENT_TIMESTAMP'
         );
         $upsert->bindValue(':client_id', $clientId);
@@ -145,9 +165,7 @@ final class SettingsStore
         $upsert->bindValue(':settings', $encryptedSettings, PDO::PARAM_LOB);
         $upsert->execute();
 
-        if (is_string($oldTokenHash)) {
-            $this->cache->del(self::CACHE_PREFIX . $oldTokenHash);
-        }
+        $this->cache->del(self::CACHE_PREFIX . (is_string($oldTokenHash) ? $oldTokenHash : $tokenHash));
         $this->cache->del(self::CACHE_PREFIX . $tokenHash);
     }
 
